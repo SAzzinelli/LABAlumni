@@ -1,3 +1,6 @@
+// Export social types
+export * from './social'
+
 export type UserRole = 'student' | 'company'
 export type ApplicationStatus = 'pending' | 'accepted' | 'rejected'
 export type CourseType = 

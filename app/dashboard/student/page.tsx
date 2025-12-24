@@ -282,7 +282,7 @@ export default function StudentDashboard() {
                     <div className="p-4 border-b border-gray-100">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
-                          {post.user?.full_name?.[0]?.toUpperCase() || post.user?.email?.[0]?.toUpperCase() || 'U'}
+                          {post.user?.full_name?.[0]?.toUpperCase() || post.user?.id?.[0]?.toUpperCase() || 'U'}
                         </div>
                         <div className="flex-1">
                           <h4 className="font-semibold">{post.user?.full_name || 'Utente'}</h4>
