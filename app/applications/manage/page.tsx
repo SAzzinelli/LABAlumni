@@ -71,15 +71,15 @@ export default function ManageApplicationsPage() {
 
       // Load profiles for students
       if (applicationsData) {
-        const studentIds = applicationsData.map(app => app.student_id)
+        const studentIds = applicationsData.map((app: any) => app.student_id)
         const { data: profilesData } = await supabase
           .from('profiles')
           .select('*')
           .in('id', studentIds)
 
-        const profilesMap = new Map(profilesData?.map(p => [p.id, p]) || [])
+        const profilesMap = new Map(profilesData?.map((p: any) => [p.id, p]) || [])
 
-        const applicationsWithProfiles = applicationsData.map(app => ({
+        const applicationsWithProfiles = applicationsData.map((app: any) => ({
           ...app,
           student: {
             ...app.student,
