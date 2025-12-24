@@ -105,7 +105,7 @@ export default function NewCollaborationRequestPage() {
             <Briefcase className="w-8 h-8 text-primary-600" />
             Pubblica Richiesta di Collaborazione
           </h1>
-          <p className="text-gray-600 mt-2">Descrivi l'opportunità che stai cercando</p>
+          <p className="text-gray-600 mt-2">Descrivi l&apos;opportunità che stai cercando</p>
         </div>
 
         <Card className="p-6">
