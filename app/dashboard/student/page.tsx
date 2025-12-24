@@ -9,13 +9,14 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { 
   Briefcase, FileText, CheckCircle, Clock, XCircle, 
-  Heart, MessageCircle, Share2, Plus, Image as ImageIcon,
+  Plus, Image as ImageIcon,
   Users, TrendingUp, BookOpen, Sparkles
 } from 'lucide-react'
 import Link from 'next/link'
 import type { Student, JobPost, Application } from '@/types/database'
 import type { Post } from '@/types/social'
 import { COURSE_CONFIG } from '@/types/database'
+import { PostCard } from '@/components/PostCard'
 
 export default function StudentDashboard() {
   const { user, loading: authLoading } = useAuth()
@@ -108,30 +109,6 @@ export default function StudentDashboard() {
     }
   }
 
-  const handleLike = async (postId: string, isLiked: boolean) => {
-    if (!user) return
-
-    try {
-      if (isLiked) {
-        // Unlike
-        await supabase
-          .from('post_likes')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', user.id)
-      } else {
-        // Like
-        await supabase
-          .from('post_likes')
-          .insert({ post_id: postId, user_id: user.id })
-      }
-
-      // Reload posts
-      loadFeedPosts()
-    } catch (error) {
-      console.error('Error toggling like:', error)
-    }
-  }
 
   if (loading || authLoading) {
     return (
@@ -231,14 +208,14 @@ export default function StudentDashboard() {
                 <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
                   {user?.email?.[0]?.toUpperCase() || 'U'}
                 </div>
-                <div className="flex-1">
+                <Link href="/post/create" className="flex-1">
                   <input
                     type="text"
                     placeholder="Condividi un pensiero, un lavoro o una novità..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    onClick={() => router.push('/post/create')}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
+                    readOnly
                   />
-                </div>
+                </Link>
                 <Button variant="primary" size="sm">
                   <ImageIcon className="w-4 h-4 mr-2" />
                   Foto
@@ -277,76 +254,11 @@ export default function StudentDashboard() {
             ) : (
               <div className="space-y-4">
                 {posts.map((post) => (
-                  <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    {/* Post Header */}
-                    <div className="p-4 border-b border-gray-100">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
-                          {post.user?.full_name?.[0]?.toUpperCase() || post.user?.id?.[0]?.toUpperCase() || 'U'}
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold">{post.user?.full_name || 'Utente'}</h4>
-                          <p className="text-sm text-gray-500">
-                            {new Date(post.created_at).toLocaleDateString('it-IT', {
-                              day: 'numeric',
-                              month: 'long',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Post Content */}
-                    <div className="p-4">
-                      <p className="text-gray-900 whitespace-pre-wrap mb-4">{post.content}</p>
-                      
-                      {/* Images */}
-                      {post.images && post.images.length > 0 && (
-                        <div className={`grid gap-2 mb-4 ${post.images.length === 1 ? 'grid-cols-1' : 'grid-cols-2'}`}>
-                          {post.images.map((img, idx) => (
-                            <img
-                              key={idx}
-                              src={img}
-                              alt={`Post image ${idx + 1}`}
-                              className="w-full h-64 object-cover rounded-lg"
-                            />
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Video */}
-                      {post.video_url && (
-                        <div className="mb-4">
-                          <video src={post.video_url} controls className="w-full rounded-lg"></video>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Post Actions */}
-                    <div className="px-4 py-3 border-t border-gray-100">
-                      <div className="flex items-center gap-6">
-                        <button
-                          onClick={() => handleLike(post.id, post.is_liked || false)}
-                          className={`flex items-center gap-2 transition-colors ${
-                            post.is_liked ? 'text-red-600' : 'text-gray-600 hover:text-red-600'
-                          }`}
-                        >
-                          <Heart className={`w-5 h-5 ${post.is_liked ? 'fill-current' : ''}`} />
-                          <span className="text-sm font-medium">{post.likes_count}</span>
-                        </button>
-                        <button className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors">
-                          <MessageCircle className="w-5 h-5" />
-                          <span className="text-sm font-medium">{post.comments_count}</span>
-                        </button>
-                        <button className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors">
-                          <Share2 className="w-5 h-5" />
-                          <span className="text-sm font-medium">Condividi</span>
-                        </button>
-                      </div>
-                    </div>
-                  </Card>
+                  <PostCard 
+                    key={post.id} 
+                    post={post} 
+                    onUpdate={loadFeedPosts}
+                  />
                 ))}
               </div>
             )}
