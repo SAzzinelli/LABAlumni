@@ -112,6 +112,38 @@ class MockSupabase {
         }
       }
       return { data: { session: null }, error: null }
+    },
+
+    onAuthStateChange: (callback: (event: string, session: any) => void) => {
+      // Mock auth state change listener
+      // Check for session changes periodically
+      let lastUser: any = null
+      
+      const checkAuth = () => {
+        if (typeof window !== 'undefined') {
+          const stored = localStorage.getItem('laba_current_user')
+          const currentUser = stored ? JSON.parse(stored) : null
+          
+          if (currentUser?.id !== lastUser?.id) {
+            lastUser = currentUser
+            callback(currentUser ? 'SIGNED_IN' : 'SIGNED_OUT', currentUser ? { user: currentUser } : null)
+          }
+        }
+      }
+      
+      // Check immediately
+      checkAuth()
+      
+      // Check periodically
+      const interval = setInterval(checkAuth, 1000)
+      
+      return {
+        data: {
+          subscription: {
+            unsubscribe: () => clearInterval(interval)
+          }
+        }
+      }
     }
   }
 
