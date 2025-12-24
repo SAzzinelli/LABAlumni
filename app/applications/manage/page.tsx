@@ -54,7 +54,7 @@ export default function ManageApplicationsPage() {
           job_post:job_posts(*),
           student:students(*)
         `)
-        .in('job_post_id', jobPosts.map(j => j.id))
+        .in('job_post_id', jobPosts.map((j: any) => j.id))
 
       if (filter !== 'all') {
         query = query.eq('status', filter)
