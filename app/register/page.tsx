@@ -106,23 +106,10 @@ export default function RegisterPage() {
     setError('')
 
     try {
-      // Check if matricola already exists
-      const { data: existingStudent } = await supabase
-        .from('students')
-        .select('id')
-        .eq('matricola', matricola)
-        .single()
-
-      if (existingStudent) {
-        setError('Questa matricola è già registrata')
-        setLoading(false)
-        return
-      }
-
       const yearNum = parseInt(year)
       const isAuditor = yearNum === 1 && (course !== 'interior-design' && course !== 'cinema-audiovisivi')
 
-      // Sign up user
+      // Sign up user FIRST (before checking matricola to avoid rate limiting)
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -136,28 +123,60 @@ export default function RegisterPage() {
 
       if (authError) {
         console.error('Auth error:', authError)
-        throw authError
+        // Handle rate limiting specifically
+        if (authError.message?.includes('24 seconds') || authError.message?.includes('request this after')) {
+          setError('Troppi tentativi. Attendi qualche secondo prima di riprovare.')
+        } else {
+          setError(authError.message || 'Errore durante la registrazione')
+        }
+        setLoading(false)
+        return
       }
       
       if (!authData.user) {
-        throw new Error('Errore nella creazione dell&apos;utente')
+        setError('Errore nella creazione dell&apos;utente')
+        setLoading(false)
+        return
       }
 
-      // Create profile
+      // Check if matricola already exists (now we're authenticated)
+      const { data: existingStudent, error: checkError } = await supabase
+        .from('students')
+        .select('id')
+        .eq('matricola', matricola)
+        .maybeSingle()
+
+      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
+        console.error('Check matricola error:', checkError)
+        // If check fails, continue anyway (matricola constraint will catch duplicates)
+      }
+
+      if (existingStudent) {
+        // User created but matricola exists - clean up
+        await supabase.auth.admin.deleteUser(authData.user.id).catch(() => {})
+        setError('Questa matricola è già registrata')
+        setLoading(false)
+        return
+      }
+
+      // Update profile (created automatically by trigger, but update with our data)
       const profileData = {
-        id: authData.user.id,
         role: 'student',
         email: email,
         full_name: `${firstName} ${lastName}`,
         avatar_url: null,
-        created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       }
       
-      await supabase
+      const { error: profileError } = await supabase
         .from('profiles')
         .update(profileData)
         .eq('id', authData.user.id)
+
+      if (profileError) {
+        console.error('Profile error:', profileError)
+        throw profileError
+      }
 
       // Create student profile
       const studentData = {
@@ -182,7 +201,15 @@ export default function RegisterPage() {
 
       if (studentError) {
         console.error('Student error:', studentError)
-        throw studentError
+        // If insert fails, try to clean up the auth user
+        await supabase.auth.admin.deleteUser(authData.user.id).catch(() => {})
+        if (studentError.code === '23505') { // Unique violation
+          setError('Questa matricola è già registrata')
+        } else {
+          setError(studentError.message || 'Errore durante la creazione del profilo studente')
+        }
+        setLoading(false)
+        return
       }
 
       // Success - save current user
@@ -196,10 +223,11 @@ export default function RegisterPage() {
       console.error('Registration error:', error)
       if (error.message?.includes('Failed to fetch') || error.message?.includes('Network')) {
         setError('Impossibile connettersi al server. Assicurati che Supabase sia configurato correttamente.')
+      } else if (error.message?.includes('24 seconds') || error.message?.includes('request this after')) {
+        setError('Troppi tentativi. Attendi qualche secondo prima di riprovare.')
       } else {
         setError(error.message || 'Errore durante la registrazione')
       }
-    } finally {
       setLoading(false)
     }
   }
