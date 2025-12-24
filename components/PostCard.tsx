@@ -138,7 +138,7 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
             </div>
             <div>
               <p className="font-semibold text-gray-900">
-                {post.user?.full_name || post.user?.email || 'Utente'}
+                {post.user?.full_name || 'Utente'}
               </p>
               <p className="text-sm text-gray-500">{formatDate(post.created_at)}</p>
             </div>
