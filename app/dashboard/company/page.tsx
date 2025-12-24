@@ -7,9 +7,11 @@ import { supabase } from '@/lib/supabase'
 import { Navbar } from '@/components/Navbar'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
-import { Briefcase, Users, FileText, Plus, CheckCircle, Clock, XCircle } from 'lucide-react'
+import { Briefcase, Users, FileText, Plus, CheckCircle, Clock, XCircle, TrendingUp, Sparkles } from 'lucide-react'
 import Link from 'next/link'
 import type { Company, JobPost, Application } from '@/types/database'
+import type { Post } from '@/types/social'
+import { PostCard } from '@/components/PostCard'
 
 export default function CompanyDashboard() {
   const { user, loading: authLoading } = useAuth()
@@ -17,7 +19,9 @@ export default function CompanyDashboard() {
   const [company, setCompany] = useState<Company | null>(null)
   const [jobPosts, setJobPosts] = useState<JobPost[]>([])
   const [applications, setApplications] = useState<(Application & { student: any; job_post: JobPost })[]>([])
+  const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(true)
+  const [postLoading, setPostLoading] = useState(true)
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -27,6 +31,7 @@ export default function CompanyDashboard() {
 
     if (user) {
       loadCompanyData()
+      loadCompanyPosts()
     }
   }, [user, authLoading, router])
 
@@ -73,6 +78,45 @@ export default function CompanyDashboard() {
     }
   }
 
+  const loadCompanyPosts = async () => {
+    if (!user) return
+
+    try {
+      // Load company's own posts
+      const { data: postsData, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          user:profiles!posts_user_id_fkey(id, full_name, avatar_url, role)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20)
+
+      if (error) throw error
+
+      // Check which posts user has liked
+      if (postsData) {
+        const { data: likedPosts } = await supabase
+          .from('post_likes')
+          .select('post_id')
+          .eq('user_id', user.id)
+          .in('post_id', postsData.map(p => p.id))
+
+        const likedPostIds = new Set(likedPosts?.map(l => l.post_id) || [])
+
+        setPosts(postsData.map(post => ({
+          ...post,
+          is_liked: likedPostIds.has(post.id)
+        })) || [])
+      }
+    } catch (error) {
+      console.error('Error loading posts:', error)
+    } finally {
+      setPostLoading(false)
+    }
+  }
+
   const handleApplicationStatus = async (applicationId: string, status: 'accepted' | 'rejected') => {
     const { error } = await supabase
       .from('applications')
@@ -86,8 +130,8 @@ export default function CompanyDashboard() {
 
   if (loading || authLoading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
       </div>
     )
   }
@@ -99,197 +143,214 @@ export default function CompanyDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard Azienda</h1>
-          <p className="text-gray-600 mt-2">
-            Benvenuto{company?.company_name ? `, ${company.company_name}` : ''}
-          </p>
-        </div>
+        {/* 3 Column Layout */}
+        <div className="grid lg:grid-cols-12 gap-6">
+          
+          {/* Left Sidebar */}
+          <aside className="lg:col-span-3 space-y-6">
+            {/* Company Info Card */}
+            <Card className="sticky top-24">
+              <div className="text-center mb-4">
+                <div className="w-20 h-20 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full mx-auto mb-3 flex items-center justify-center text-white text-2xl font-bold">
+                  {company?.company_name?.[0]?.toUpperCase() || 'A'}
+                </div>
+                <h3 className="font-semibold text-lg">{company?.company_name || 'Azienda'}</h3>
+                {company?.industry && (
+                  <p className="text-sm text-gray-600">{company.industry}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Link href="/profile" className="block">
+                  <Button variant="outline" className="w-full" size="sm">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Visualizza Profilo
+                  </Button>
+                </Link>
+                <Link href="/jobs/manage" className="block">
+                  <Button variant="primary" className="w-full" size="sm">
+                    <Briefcase className="w-4 h-4 mr-2" />
+                    Gestisci Annunci
+                  </Button>
+                </Link>
+              </div>
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Main content */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Quick actions */}
-            <Card>
-              <h2 className="text-xl font-semibold mb-4">Azioni Rapide</h2>
-              <div className="grid sm:grid-cols-2 gap-4">
-                <Link href="/jobs/manage">
-                  <Button className="w-full" variant="primary">
-                    <Plus className="w-5 h-5 mr-2" />
-                    Nuovo Annuncio
-                  </Button>
-                </Link>
-                <Link href="/profile">
-                  <Button className="w-full" variant="outline">
-                    <FileText className="w-5 h-5 mr-2" />
-                    Modifica Profilo
-                  </Button>
-                </Link>
+              <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Annunci attivi</span>
+                  <span className="font-semibold">{jobPosts.filter(j => j.active).length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Post pubblicati</span>
+                  <span className="font-semibold">{posts.length}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Candidature</span>
+                  <span className="font-semibold">{applications.length}</span>
+                </div>
               </div>
             </Card>
 
-            {/* Job posts */}
+            {/* Quick Links */}
             <Card>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">I Tuoi Annunci</h2>
-                <Link href="/jobs/manage">
-                  <Button variant="ghost" size="sm">Gestisci</Button>
+              <h3 className="font-semibold mb-4 flex items-center">
+                <Sparkles className="w-5 h-5 mr-2 text-primary-600" />
+                Azioni Rapide
+              </h3>
+              <div className="space-y-2">
+                <Link href="/post/company/new" className="block">
+                  <Button variant="outline" className="w-full" size="sm">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Nuovo Post
+                  </Button>
+                </Link>
+                <Link href="/jobs/manage" className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors py-2">
+                  <Briefcase className="w-5 h-5" />
+                  <span>Gestisci Annunci</span>
+                </Link>
+                <Link href="/applications/manage" className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors py-2">
+                  <Users className="w-5 h-5" />
+                  <span>Candidature</span>
                 </Link>
               </div>
+            </Card>
+          </aside>
 
-              {jobPosts.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
-                  Non hai ancora creato annunci. <Link href="/jobs/manage" className="text-primary hover:underline">Crea il primo annuncio</Link>
-                </p>
-              ) : (
-                <div className="space-y-4">
-                  {jobPosts.map((job) => (
-                    <div key={job.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex justify-between items-start">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-lg">{job.title}</h3>
-                            {!job.active && (
-                              <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">Inattivo</span>
-                            )}
-                          </div>
-                          <p className="text-gray-600 text-sm mt-1">
-                            {job.type} • {job.location || 'Remoto'}
-                          </p>
-                          <p className="text-gray-500 text-xs mt-2">
-                            Pubblicato il {new Date(job.created_at).toLocaleDateString('it-IT')}
-                          </p>
+          {/* Main Feed */}
+          <main className="lg:col-span-6 space-y-4">
+            {/* Create Post Card */}
+            <Card className="p-4 bg-gradient-to-r from-primary-50 to-primary-100 border-primary-200">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white">
+                  <Briefcase className="w-5 h-5" />
+                </div>
+                <div className="flex-1">
+                  <Link href="/post/company/new">
+                    <input
+                      type="text"
+                      placeholder="Pubblica un annuncio, progetto o novità aziendale..."
+                      className="w-full px-4 py-2 border border-primary-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer bg-white"
+                      readOnly
+                    />
+                  </Link>
+                  <p className="text-xs text-gray-600 mt-1 ml-4">
+                    Solo aziende: condividi contenuti con la community
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Feed Posts */}
+            {postLoading ? (
+              <div className="space-y-4">
+                {[...Array(3)].map((_, i) => (
+                  <Card key={i} className="p-6">
+                    <div className="animate-pulse space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/3"></div>
                         </div>
                       </div>
+                      <div className="h-4 bg-gray-200 rounded"></div>
+                      <div className="h-48 bg-gray-200 rounded"></div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </Card>
+                  </Card>
+                ))}
+              </div>
+            ) : posts.length === 0 ? (
+              <Card className="p-12 text-center">
+                <Briefcase className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Nessun post ancora</h3>
+                <p className="text-gray-600 mb-6">Inizia a condividere contenuti con la community!</p>
+                <Link href="/post/company/new">
+                  <Button variant="primary">Pubblica il Primo Post</Button>
+                </Link>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {posts.map((post) => (
+                  <PostCard 
+                    key={post.id} 
+                    post={post} 
+                    onUpdate={loadCompanyPosts}
+                  />
+                ))}
+              </div>
+            )}
+          </main>
 
-            {/* Recent applications */}
+          {/* Right Sidebar */}
+          <aside className="lg:col-span-3 space-y-6">
+            {/* Recent Applications */}
             <Card>
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Candidature Recenti</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold flex items-center">
+                  <TrendingUp className="w-5 h-5 mr-2 text-primary-600" />
+                  Candidature Recenti
+                </h3>
                 <Link href="/applications/manage">
                   <Button variant="ghost" size="sm">Vedi tutte</Button>
                 </Link>
               </div>
 
               {applications.length === 0 ? (
-                <p className="text-gray-500 text-center py-8">
-                  Nessuna candidatura ricevuta ancora.
+                <p className="text-sm text-gray-500 text-center py-4">
+                  Nessuna candidatura
                 </p>
               ) : (
-                <div className="space-y-4">
-                  {applications.map((app) => {
+                <div className="space-y-3">
+                  {applications.slice(0, 3).map((app) => {
                     const StatusIcon = statusConfig[app.status].icon
                     return (
-                      <div key={app.id} className="border border-gray-200 rounded-lg p-4">
-                        <div className="flex justify-between items-start mb-3">
-                          <div className="flex-1">
-                            <h3 className="font-semibold">{app.job_post.title}</h3>
-                            <p className="text-gray-600 text-sm mt-1">
-                              Candidato il {new Date(app.created_at).toLocaleDateString('it-IT')}
-                            </p>
-                          </div>
-                          <div className={`flex items-center gap-2 px-3 py-1 rounded-full ${statusConfig[app.status].bg}`}>
-                            <StatusIcon className={`w-4 h-4 ${statusConfig[app.status].color}`} />
-                            <span className={`text-sm font-medium ${statusConfig[app.status].color}`}>
-                              {statusConfig[app.status].label}
-                            </span>
-                          </div>
+                      <div key={app.id} className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <h4 className="font-medium text-sm mb-1 line-clamp-1">{app.job_post.title}</h4>
+                        <div className="flex items-center gap-2 mt-2">
+                          <StatusIcon className={`w-4 h-4 ${statusConfig[app.status].color}`} />
+                          <span className={`text-xs ${statusConfig[app.status].color}`}>
+                            {statusConfig[app.status].label}
+                          </span>
                         </div>
-                        
-                        {app.status === 'pending' && (
-                          <div className="flex gap-2 mt-3">
-                            <Button
-                              size="sm"
-                              variant="primary"
-                              onClick={() => handleApplicationStatus(app.id, 'accepted')}
-                            >
-                              Accetta
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleApplicationStatus(app.id, 'rejected')}
-                            >
-                              Rifiuta
-                            </Button>
-                          </div>
-                        )}
                       </div>
                     )
                   })}
                 </div>
               )}
             </Card>
-          </div>
 
-          {/* Sidebar */}
-          <div className="space-y-6">
-            {/* Company info */}
+            {/* Recent Job Posts */}
             <Card>
-              <h2 className="text-xl font-semibold mb-4">La Tua Azienda</h2>
-              {company && (
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-gray-600">Nome</p>
-                    <p className="font-medium">{company.company_name}</p>
-                  </div>
-                  {company.industry && (
-                    <div>
-                      <p className="text-sm text-gray-600">Settore</p>
-                      <p className="font-medium">{company.industry}</p>
-                    </div>
-                  )}
-                  <Link href="/profile">
-                    <Button variant="outline" className="w-full" size="sm">
-                      Completa Profilo
-                    </Button>
-                  </Link>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-semibold">I Tuoi Annunci</h3>
+                <Link href="/jobs/manage">
+                  <Button variant="ghost" size="sm">Gestisci</Button>
+                </Link>
+              </div>
+              {jobPosts.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4">
+                  Nessun annuncio
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {jobPosts.slice(0, 3).map((job) => (
+                    <Link key={job.id} href={`/jobs/${job.id}`}>
+                      <div className="p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                        <h4 className="font-medium text-sm mb-1 line-clamp-1">{job.title}</h4>
+                        <p className="text-xs text-gray-500">{job.type}</p>
+                      </div>
+                    </Link>
+                  ))}
                 </div>
               )}
             </Card>
-
-            {/* Stats */}
-            <Card>
-              <h2 className="text-xl font-semibold mb-4">Statistiche</h2>
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Annunci attivi</span>
-                  <span className="font-semibold">
-                    {jobPosts.filter(j => j.active).length}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Candidature totali</span>
-                  <span className="font-semibold">{applications.length}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">In attesa</span>
-                  <span className="font-semibold text-yellow-600">
-                    {applications.filter(a => a.status === 'pending').length}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Accettate</span>
-                  <span className="font-semibold text-green-600">
-                    {applications.filter(a => a.status === 'accepted').length}
-                  </span>
-                </div>
-              </div>
-            </Card>
-          </div>
+          </aside>
         </div>
       </div>
     </div>
   )
 }
-
-
