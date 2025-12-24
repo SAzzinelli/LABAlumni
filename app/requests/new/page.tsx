@@ -156,14 +156,14 @@ export default function NewCollaborationRequestPage() {
                 label="Descrizione della Richiesta *"
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                placeholder="Descrivi l'opportunità che stai cercando, le tue competenze, la disponibilità, e qualsiasi altro dettaglio rilevante..."
+                placeholder="Descrivi l&apos;opportunità che stai cercando, le tue competenze, la disponibilità, e qualsiasi altro dettaglio rilevante..."
                 rows={8}
                 required
               />
               <p className="text-sm text-gray-500 mt-2">
-                Esempio: "Cerco un tirocinio in graphic design. Sono al 3° anno di Graphic Design & Multimedia, 
+                Esempio: &quot;Cerco un tirocinio in graphic design. Sono al 3° anno di Graphic Design &amp; Multimedia, 
                 ho competenze in Adobe Creative Suite e sono disponibile per 3-6 mesi part-time. 
-                Interessato a progetti di branding e comunicazione visiva."
+                Interessato a progetti di branding e comunicazione visiva.&quot;
               </p>
             </div>
 

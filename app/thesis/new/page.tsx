@@ -106,7 +106,7 @@ export default function NewThesisProposalPage() {
                 required
               />
               <p className="text-sm text-gray-500 mt-2">
-                Fornisci una descrizione dettagliata che permetta ai relatori di capire l'argomento e lo scope della tua tesi.
+                Fornisci una descrizione dettagliata che permetta ai relatori di capire l&apos;argomento e lo scope della tua tesi.
               </p>
             </div>
 
