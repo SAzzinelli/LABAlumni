@@ -178,37 +178,50 @@ export default function RegisterPage() {
         throw profileError
       }
 
-      // Create student profile
-      const studentData = {
-        id: authData.user.id,
-        course,
-        year: yearNum,
-        phone,
-        matricola,
-        last_year_update: new Date().toISOString(),
-        bio: null,
-        portfolio_url: null,
-        twitter_url: null,
-        linkedin_url: null,
-        website_url: null,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      }
-
-      const { error: studentError } = await supabase
-        .from('students')
-        .insert(studentData)
-
-      if (studentError) {
-        console.error('Student error:', studentError)
-        if (studentError.code === '23505') { // Unique violation (duplicate matricola)
-          setError('Questa matricola è già registrata')
-        } else {
-          setError(studentError.message || 'Errore durante la creazione del profilo studente')
+      // Create student profile using function (bypasses RLS during registration)
+      const { error: studentError } = await supabase.rpc('insert_student_profile', {
+        p_id: authData.user.id,
+        p_course: course,
+        p_year: yearNum,
+        p_phone: phone,
+        p_matricola: matricola,
+        p_bio: null,
+        p_portfolio_url: null,
+        p_twitter_url: null,
+        p_linkedin_url: null,
+        p_website_url: null,
+      })
+      
+      // Fallback to direct insert if function doesn't exist yet
+      if (studentError && studentError.message?.includes('function') && studentError.message?.includes('does not exist')) {
+        const studentData = {
+          id: authData.user.id,
+          course,
+          year: yearNum,
+          phone,
+          matricola,
+          last_year_update: new Date().toISOString(),
+          bio: null,
+          portfolio_url: null,
+          twitter_url: null,
+          linkedin_url: null,
+          website_url: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
         }
-        setLoading(false)
-        return
+        
+        const { error: insertError } = await supabase
+          .from('students')
+          .insert(studentData)
+        
+        if (insertError) {
+          throw insertError
+        }
+      } else if (studentError) {
+        throw studentError
       }
+
+      // Error handling is done inline above
 
       // Success - save current user
       if (typeof window !== 'undefined') {
