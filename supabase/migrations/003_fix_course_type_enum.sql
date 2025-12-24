@@ -31,12 +31,24 @@ ALTER TYPE course_type_new RENAME TO course_type;
 ALTER TABLE public.students 
   ALTER COLUMN course TYPE course_type USING course::course_type;
 
--- Step 6: Do the same for job_posts.courses array
--- First convert to text array
-ALTER TABLE public.job_posts 
-  ALTER COLUMN courses TYPE TEXT[] USING courses::TEXT[];
-
--- Then convert back to course_type array
-ALTER TABLE public.job_posts 
-  ALTER COLUMN courses TYPE course_type[] USING courses::course_type[];
+-- Step 6: Do the same for job_posts.courses array (if column exists)
+-- Check if column exists first - only alter if it does
+DO $$ 
+BEGIN
+  IF EXISTS (
+    SELECT 1 
+    FROM information_schema.columns 
+    WHERE table_schema = 'public' 
+    AND table_name = 'job_posts' 
+    AND column_name = 'courses'
+  ) THEN
+    -- First convert to text array
+    ALTER TABLE public.job_posts 
+      ALTER COLUMN courses TYPE TEXT[] USING courses::TEXT[];
+    
+    -- Then convert back to course_type array
+    ALTER TABLE public.job_posts 
+      ALTER COLUMN courses TYPE course_type[] USING courses::course_type[];
+  END IF;
+END $$;
 
