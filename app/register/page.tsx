@@ -152,8 +152,8 @@ export default function RegisterPage() {
       }
 
       if (existingStudent) {
-        // User created but matricola exists - clean up
-        await supabase.auth.admin.deleteUser(authData.user.id).catch(() => {})
+        // User created but matricola exists
+        // The unique constraint on matricola will prevent duplicate inserts
         setError('Questa matricola è già registrata')
         setLoading(false)
         return
@@ -201,9 +201,7 @@ export default function RegisterPage() {
 
       if (studentError) {
         console.error('Student error:', studentError)
-        // If insert fails, try to clean up the auth user
-        await supabase.auth.admin.deleteUser(authData.user.id).catch(() => {})
-        if (studentError.code === '23505') { // Unique violation
+        if (studentError.code === '23505') { // Unique violation (duplicate matricola)
           setError('Questa matricola è già registrata')
         } else {
           setError(studentError.message || 'Errore durante la creazione del profilo studente')
