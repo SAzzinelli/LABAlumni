@@ -20,7 +20,7 @@ export function Navbar() {
         .select('role')
         .eq('id', user.id)
         .single()
-        .then(({ data }) => {
+        .then(({ data }: any) => {
           setUserRole(data?.role || null)
         })
     } else {
