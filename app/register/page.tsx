@@ -218,10 +218,17 @@ export default function RegisterPage() {
           throw insertError
         }
       } else if (studentError) {
-        throw studentError
+        console.error('Student error:', studentError)
+        if (studentError.code === '23505') { // Unique violation (duplicate matricola)
+          setError('Questa matricola è già registrata')
+        } else if (studentError.message?.includes('row-level security')) {
+          setError('Errore di sicurezza. Assicurati che le policies RLS siano configurate correttamente.')
+        } else {
+          setError(studentError.message || 'Errore durante la creazione del profilo studente')
+        }
+        setLoading(false)
+        return
       }
-
-      // Error handling is done inline above
 
       // Success - save current user
       if (typeof window !== 'undefined') {
