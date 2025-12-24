@@ -107,16 +107,11 @@ export default function RegisterPage() {
 
     try {
       // Check if matricola already exists
-      const { data: existingStudent, error: checkError } = await supabase
+      const { data: existingStudent } = await supabase
         .from('students')
         .select('id')
         .eq('matricola', matricola)
         .single()
-
-      if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = no rows returned
-        console.error('Error checking matricola:', checkError)
-        // Continua anche se c'è errore (probabilmente Supabase non configurato)
-      }
 
       if (existingStudent) {
         setError('Questa matricola è già registrata')
@@ -148,42 +143,53 @@ export default function RegisterPage() {
         throw new Error('Errore nella creazione dell&apos;utente')
       }
 
-      // Update profile with role
-      const { error: profileError } = await supabase
+      // Create profile
+      const profileData = {
+        id: authData.user.id,
+        role: 'student',
+        email: email,
+        full_name: `${firstName} ${lastName}`,
+        avatar_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      }
+      
+      await supabase
         .from('profiles')
-        .update({ 
-          role: 'student', 
-          full_name: `${firstName} ${lastName}`,
-          email: email
-        })
+        .update(profileData)
         .eq('id', authData.user.id)
 
-      if (profileError) {
-        console.error('Profile error:', profileError)
-        // Non blocchiamo se il profilo non esiste ancora (verrà creato da trigger)
+      // Create student profile
+      const studentData = {
+        id: authData.user.id,
+        course,
+        year: yearNum,
+        phone,
+        matricola,
+        last_year_update: new Date().toISOString(),
+        bio: null,
+        portfolio_url: null,
+        twitter_url: null,
+        linkedin_url: null,
+        website_url: null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       }
 
-      // Create student profile
       const { error: studentError } = await supabase
         .from('students')
-        .insert({
-          id: authData.user.id,
-          course,
-          year: yearNum,
-          phone,
-          matricola,
-          last_year_update: new Date().toISOString(),
-        })
+        .insert(studentData)
 
       if (studentError) {
         console.error('Student error:', studentError)
-        // Se Supabase non è configurato, mostriamo un messaggio più user-friendly
-        if (studentError.message.includes('Failed to fetch') || studentError.message.includes('Network')) {
-          throw new Error('Impossibile connettersi al server. Controlla la configurazione Supabase.')
-        }
         throw studentError
       }
 
+      // Success - save current user
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('laba_current_user', JSON.stringify(authData.user))
+      }
+      
       router.push('/dashboard')
       router.refresh()
     } catch (error: any) {
