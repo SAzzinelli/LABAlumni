@@ -56,16 +56,26 @@ export default function CreatePostPage() {
       const filePath = `posts/${fileName}`
 
       try {
-        // Upload to Supabase Storage (you'll need to create this bucket)
-        // For now, we'll use a placeholder URL - in production you'd use Supabase Storage
+        // Try to upload to Supabase Storage
         const { data, error } = await supabase.storage
           .from('posts')
-          .upload(filePath, file)
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            upsert: false
+          })
 
         if (error) {
-          console.error('Error uploading image:', error)
-          // Fallback: use object URL for now
-          uploadedUrls.push(URL.createObjectURL(file))
+          // If bucket doesn't exist, convert to base64 as fallback
+          console.warn('Storage bucket not configured, using base64:', error)
+          const reader = new FileReader()
+          await new Promise<void>((resolve, reject) => {
+            reader.onload = () => {
+              uploadedUrls.push(reader.result as string)
+              resolve()
+            }
+            reader.onerror = reject
+            reader.readAsDataURL(file)
+          })
         } else {
           const { data: { publicUrl } } = supabase.storage
             .from('posts')
@@ -74,7 +84,16 @@ export default function CreatePostPage() {
         }
       } catch (err) {
         console.error('Upload error:', err)
-        uploadedUrls.push(URL.createObjectURL(file))
+        // Fallback to base64
+        const reader = new FileReader()
+        await new Promise<void>((resolve, reject) => {
+          reader.onload = () => {
+            uploadedUrls.push(reader.result as string)
+            resolve()
+          }
+          reader.onerror = reject
+          reader.readAsDataURL(file)
+        })
       }
     }
 
