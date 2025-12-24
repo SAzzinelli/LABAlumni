@@ -230,11 +230,7 @@ export default function RegisterPage() {
         return
       }
 
-      // Success - save current user
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('laba_current_user', JSON.stringify(authData.user))
-      }
-      
+      // Success - redirect to dashboard
       router.push('/dashboard')
       router.refresh()
     } catch (error: any) {
