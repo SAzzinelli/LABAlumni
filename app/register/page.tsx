@@ -145,7 +145,7 @@ export default function RegisterPage() {
       }
       
       if (!authData.user) {
-        throw new Error('Errore nella creazione dell\'utente')
+        throw new Error('Errore nella creazione dell&apos;utente')
       }
 
       // Update profile with role
@@ -303,7 +303,7 @@ export default function RegisterPage() {
               onChange={(e) => setYear(e.target.value)}
               required
             >
-              <option value="">Seleziona l'anno</option>
+              <option value="">Seleziona l&apos;anno</option>
               {yearOptions.map((y) => {
                 const isAuditorYear = y === 1 && (course !== 'interior-design' && course !== 'cinema-audiovisivi')
                 return (
