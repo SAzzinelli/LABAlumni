@@ -17,7 +17,7 @@ export default function DashboardRedirect() {
         .select('role')
         .eq('id', user.id)
         .single()
-        .then(({ data }) => {
+        .then(({ data }: any) => {
           if (data?.role === 'company') {
             router.push('/dashboard/company')
           } else {

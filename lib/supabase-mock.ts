@@ -164,7 +164,7 @@ class MockSupabase {
       
       update: (data: any) => ({
         eq: (col: string, value: any) => ({
-          then: async (callback: any) => {
+          then: async (callback: (result: { error: any }) => any) => {
             if (typeof window === 'undefined') {
               return callback({ error: null })
             }
