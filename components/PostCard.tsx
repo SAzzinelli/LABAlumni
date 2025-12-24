@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { Card } from './ui/Card'
 import { Heart, MessageCircle, Share2 } from 'lucide-react'
 import type { Post } from '@/types/social'
+import { COURSE_CONFIG, type CourseType } from '@/types/database'
 
 interface PostCardProps {
   post: Post
@@ -71,10 +72,37 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
 
       {/* Post Content */}
       <div className="p-4">
+        {/* Collaboration Request Badge */}
+        {post.type === 'collaboration_request' && (
+          <div className="mb-3 flex items-center gap-2">
+            <div className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+              {post.request_type === 'tirocinio' && '🎯 Tirocinio'}
+              {post.request_type === 'stage' && '💼 Stage'}
+              {post.request_type === 'collaborazione' && '🤝 Collaborazione'}
+              {post.request_type === 'lavoro' && '💼 Lavoro'}
+              {post.request_type === 'tesi' && '📚 Tesi'}
+            </div>
+            {post.request_courses && post.request_courses.length > 0 && (
+              <div className="flex gap-1 flex-wrap">
+                {post.request_courses.slice(0, 3).map((course, idx) => (
+                  <span key={idx} className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded text-xs">
+                    {COURSE_CONFIG[course as CourseType]?.name || course}
+                  </span>
+                ))}
+                {post.request_courses.length > 3 && (
+                  <span className="px-2 py-0.5 text-gray-500 text-xs">
+                    +{post.request_courses.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
         <p className="text-gray-900 whitespace-pre-wrap mb-4">{post.content}</p>
         
-        {/* Images */}
-        {post.images && post.images.length > 0 && (
+        {/* Images (only for company posts) */}
+        {post.type !== 'collaboration_request' && post.images && post.images.length > 0 && (
           <div className={`grid gap-2 mb-4 ${
             post.images.length === 1 
               ? 'grid-cols-1' 
@@ -95,8 +123,8 @@ export function PostCard({ post, onUpdate }: PostCardProps) {
           </div>
         )}
 
-        {/* Video */}
-        {post.video_url && (
+        {/* Video (only for company posts) */}
+        {post.type !== 'collaboration_request' && post.video_url && (
           <div className="mb-4">
             <video src={post.video_url} controls className="w-full rounded-lg"></video>
           </div>

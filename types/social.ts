@@ -3,13 +3,15 @@
 export interface Post {
   id: string
   user_id: string
-  type: 'text' | 'image' | 'video' | 'job' | 'portfolio' | 'thesis'
+  type: 'text' | 'image' | 'video' | 'job' | 'portfolio' | 'thesis' | 'collaboration_request'
   content: string
   images: string[] | null
   video_url: string | null
   job_post_id: string | null
   portfolio_item_id: string | null
   thesis_proposal_id: string | null
+  request_type?: 'tirocinio' | 'stage' | 'collaborazione' | 'lavoro' | 'tesi' | null
+  request_courses?: string[] | null
   likes_count: number
   comments_count: number
   shares_count: number

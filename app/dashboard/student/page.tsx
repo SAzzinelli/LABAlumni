@@ -9,7 +9,7 @@ import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { 
   Briefcase, FileText, CheckCircle, Clock, XCircle, 
-  Plus, Image as ImageIcon,
+  Plus,
   Users, TrendingUp, BookOpen, Sparkles
 } from 'lucide-react'
 import Link from 'next/link'
@@ -227,24 +227,25 @@ export default function StudentDashboard() {
 
           {/* Main Feed */}
           <main className="lg:col-span-6 space-y-4">
-            {/* Create Post Card */}
-            <Card className="p-4">
+            {/* Create Collaboration Request Card */}
+            <Card className="p-4 bg-gradient-to-r from-primary-50 to-primary-100 border-primary-200">
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-gradient-to-br from-primary-400 to-primary-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {user?.email?.[0]?.toUpperCase() || 'U'}
+                <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white">
+                  <Briefcase className="w-5 h-5" />
                 </div>
-                <Link href="/post/create" className="flex-1">
-                  <input
-                    type="text"
-                    placeholder="Condividi un pensiero, un lavoro o una novità..."
-                    className="w-full px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer"
-                    readOnly
-                  />
-                </Link>
-                <Button variant="primary" size="sm">
-                  <ImageIcon className="w-4 h-4 mr-2" />
-                  Foto
-                </Button>
+                <div className="flex-1">
+                  <Link href="/requests/new">
+                    <input
+                      type="text"
+                      placeholder="Pubblica una richiesta di collaborazione, tirocinio o stage..."
+                      className="w-full px-4 py-2 border border-primary-300 rounded-full focus:outline-none focus:ring-2 focus:ring-primary-500 cursor-pointer bg-white"
+                      readOnly
+                    />
+                  </Link>
+                  <p className="text-xs text-gray-600 mt-1 ml-4">
+                    Solo studenti: pubblica richieste di opportunità lavorative
+                  </p>
+                </div>
               </div>
             </Card>
 
