@@ -2,13 +2,18 @@
 -- Students can only create posts of type 'collaboration_request'
 -- Companies can create regular posts
 
--- Add field to distinguish collaboration requests better
+-- First, drop the old constraint
+ALTER TABLE public.posts DROP CONSTRAINT IF EXISTS posts_type_check;
+
+-- Add new constraint with collaboration_request
+ALTER TABLE public.posts 
+  ADD CONSTRAINT posts_type_check 
+  CHECK (type IN ('text', 'image', 'video', 'job', 'portfolio', 'thesis', 'collaboration_request'));
+
+-- Add fields to distinguish collaboration requests better
 ALTER TABLE public.posts 
   ADD COLUMN IF NOT EXISTS request_type TEXT CHECK (request_type IN ('tirocinio', 'stage', 'collaborazione', 'lavoro', 'tesi')),
   ADD COLUMN IF NOT EXISTS request_courses course_type[]; -- Which courses this request is for
-
--- Update existing posts type constraint to include 'collaboration_request'
--- Note: We'll handle this in the application logic, keeping database flexible
 
 -- Update RLS policy for posts - students can only create collaboration_request type posts
 DROP POLICY IF EXISTS "Users can create posts" ON public.posts;
