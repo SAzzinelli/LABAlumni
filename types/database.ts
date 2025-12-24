@@ -111,7 +111,7 @@ export function getCourseInfo(course: CourseType) {
 export function getValidYearsForCourse(course: CourseType): number[] {
   const config = COURSE_CONFIG[course]
   if (config.type === 'triennio') {
-    return [2, 3] // Solo 2° e 3° anno per trienni
+    return [2, 3] // Solo 2° e 3° anno per trienni (1° anno = auditor)
   } else {
     return [1, 2] // 1° e 2° anno per bienni
   }
