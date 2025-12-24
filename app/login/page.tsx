@@ -40,9 +40,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] px-4 py-16">
+      <div className="flex items-center justify-center min-h-screen px-4 py-16">
         <div className="w-full max-w-md">
           <Card className="shadow-xl">
             <div className="text-center mb-8">
@@ -81,14 +81,14 @@ export default function LoginPage() {
 
               <Button 
                 type="submit" 
-                className="w-full group" 
+                className="w-full group flex items-center justify-center" 
                 disabled={loading}
               >
                 {loading ? (
                   'Accesso in corso...'
                 ) : (
                   <>
-                    Accedi
+                    <span>Accedi</span>
                     <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </>
                 )}

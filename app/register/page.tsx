@@ -166,11 +166,6 @@ export default function RegisterPage() {
       case 1:
         return (
           <div className="space-y-4">
-            <div className="text-center mb-6">
-              <Lock className="w-12 h-12 text-primary-600 mx-auto mb-3" />
-              <h2 className="text-2xl font-bold text-gray-900">Credenziali di Accesso</h2>
-              <p className="text-gray-600 mt-2">Crea il tuo account per iniziare</p>
-            </div>
 
             <Input
               label="Email"
@@ -205,11 +200,6 @@ export default function RegisterPage() {
       case 2:
         return (
           <div className="space-y-4">
-            <div className="text-center mb-6">
-              <User className="w-12 h-12 text-primary-600 mx-auto mb-3" />
-              <h2 className="text-2xl font-bold text-gray-900">Informazioni Personali</h2>
-              <p className="text-gray-600 mt-2">Inserisci i tuoi dati anagrafici</p>
-            </div>
 
             <Input
               label="Nome e Cognome"
@@ -243,11 +233,6 @@ export default function RegisterPage() {
       case 3:
         return (
           <div className="space-y-4">
-            <div className="text-center mb-6">
-              <GraduationCap className="w-12 h-12 text-primary-600 mx-auto mb-3" />
-              <h2 className="text-2xl font-bold text-gray-900">Corso di Studio</h2>
-              <p className="text-gray-600 mt-2">Seleziona il tuo corso e anno di frequentazione</p>
-            </div>
 
             <Select
               label="Corso di Appartenenza"
@@ -287,65 +272,19 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      <div className="max-w-4xl mx-auto px-4 py-12">
-        <Card className="shadow-xl">
+      <div className="max-w-2xl mx-auto px-4 py-12 min-h-screen flex flex-col">
+        <Card className="shadow-lg flex-1 flex flex-col">
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-center mb-2 text-gray-900">
-              Registrati come Studente
+              Crea il tuo account
             </h1>
             <p className="text-center text-gray-600">
-              Completa i seguenti passaggi per creare il tuo account
+              Registrati come studente LABA
             </p>
           </div>
 
-          {/* Progress Steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              {STEPS.map((step, index) => {
-                const StepIcon = step.icon
-                const isCompleted = currentStep > step.id
-                const isCurrent = currentStep === step.id
-
-                return (
-                  <div key={step.id} className="flex items-center flex-1">
-                    <div className="flex flex-col items-center flex-1">
-                      <div
-                        className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all ${
-                          isCompleted
-                            ? 'bg-primary-600 border-primary-600 text-white'
-                            : isCurrent
-                            ? 'bg-primary-600 border-primary-600 text-white ring-4 ring-primary-100'
-                            : 'bg-white border-gray-300 text-gray-400'
-                        }`}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle className="w-6 h-6" />
-                        ) : (
-                          <StepIcon className="w-6 h-6" />
-                        )}
-                      </div>
-                      <span
-                        className={`mt-2 text-sm font-medium ${
-                          isCurrent ? 'text-primary-600' : isCompleted ? 'text-gray-900' : 'text-gray-400'
-                        }`}
-                      >
-                        {step.title}
-                      </span>
-                    </div>
-                    {index < STEPS.length - 1 && (
-                      <div
-                        className={`flex-1 h-0.5 mx-4 transition-colors ${
-                          isCompleted ? 'bg-primary-600' : 'bg-gray-300'
-                        }`}
-                      />
-                    )}
-                  </div>
-                )
-              })}
-            </div>
-          </div>
 
           {error && (
             <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm animate-slide-up">
@@ -353,8 +292,10 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <form onSubmit={currentStep === 3 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
-            {renderStepContent()}
+          <form onSubmit={currentStep === 3 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }} className="flex-1 flex flex-col">
+            <div className="flex-1">
+              {renderStepContent()}
+            </div>
 
             <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
               <Button
@@ -365,7 +306,7 @@ export default function RegisterPage() {
                 className="flex items-center"
               >
                 <ArrowLeft className="w-4 h-4 mr-2" />
-                Indietro
+                <span>Indietro</span>
               </Button>
 
               {currentStep < 3 ? (
@@ -374,7 +315,7 @@ export default function RegisterPage() {
                   variant="primary"
                   className="flex items-center"
                 >
-                  Avanti
+                  <span>Avanti</span>
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               ) : (
@@ -384,8 +325,8 @@ export default function RegisterPage() {
                   disabled={loading}
                   className="flex items-center"
                 >
-                  {loading ? 'Registrazione in corso...' : 'Completa Registrazione'}
-                  <CheckCircle className="w-4 h-4 ml-2" />
+                  <span>{loading ? 'Registrazione in corso...' : 'Registrati'}</span>
+                  <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               )}
             </div>

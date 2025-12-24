@@ -91,8 +91,8 @@ export default function Home() {
 
               <div className="flex gap-4 animate-slide-up" style={{ animationDelay: '0.4s' }}>
                 <Link href="/register">
-                  <Button variant="secondary" size="lg" className="bg-white text-primary-600 hover:bg-white/90 hover:scale-105 transition-transform">
-                    Inizia Gratis
+                  <Button variant="secondary" size="lg" className="bg-white text-primary-600 hover:bg-white/90 hover:scale-105 transition-transform flex items-center">
+                    <span>Inizia Gratis</span>
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </Link>
@@ -107,19 +107,19 @@ export default function Home() {
             {/* Right side - Floating icons */}
             <div className="relative h-96 hidden lg:block">
               <div className="absolute top-0 left-0 w-20 h-20 animate-float">
-                <Palette className="w-20 h-20 text-white/30" />
+                <Palette className="w-20 h-20 text-white" />
               </div>
               <div className="absolute top-20 right-0 w-16 h-16 animate-float" style={{ animationDelay: '1s' }}>
-                <Camera className="w-16 h-16 text-white/30" />
+                <Camera className="w-16 h-16 text-white" />
               </div>
               <div className="absolute bottom-20 left-1/4 w-24 h-24 animate-float" style={{ animationDelay: '2s' }}>
-                <Film className="w-24 h-24 text-white/30" />
+                <Film className="w-24 h-24 text-white" />
               </div>
               <div className="absolute bottom-0 right-1/4 w-18 h-18 animate-float" style={{ animationDelay: '3s' }}>
-                <Brush className="w-18 h-18 text-white/30" />
+                <Brush className="w-18 h-18 text-white" />
               </div>
               <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 animate-float" style={{ animationDelay: '0.5s' }}>
-                <GraduationCap className="w-32 h-32 text-white/20" />
+                <GraduationCap className="w-32 h-32 text-white" />
               </div>
             </div>
           </div>
