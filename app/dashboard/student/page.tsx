@@ -24,6 +24,8 @@ export default function StudentDashboard() {
   const [student, setStudent] = useState<Student | null>(null)
   const [applications, setApplications] = useState<(Application & { job_post: JobPost })[]>([])
   const [posts, setPosts] = useState<Post[]>([])
+  const [portfolioCount, setPortfolioCount] = useState(0)
+  const [connectionsCount, setConnectionsCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [postLoading, setPostLoading] = useState(true)
 
@@ -64,6 +66,23 @@ export default function StudentDashboard() {
         .limit(5)
 
       setApplications(applicationsData || [])
+
+      // Get portfolio count
+      const { count: portfolioCountData } = await supabase
+        .from('portfolio_items')
+        .select('*', { count: 'exact', head: true })
+        .eq('student_id', user.id)
+
+      setPortfolioCount(portfolioCountData || 0)
+
+      // Get connections count
+      const { count: connectionsCountData } = await supabase
+        .from('student_connections')
+        .select('*', { count: 'exact', head: true })
+        .or(`student1_id.eq.${user.id},student2_id.eq.${user.id}`)
+        .eq('status', 'accepted')
+
+      setConnectionsCount(connectionsCountData || 0)
     } catch (error) {
       console.error('Error loading student data:', error)
     } finally {
@@ -153,6 +172,12 @@ export default function StudentDashboard() {
                     Visualizza Profilo
                   </Button>
                 </Link>
+                <Link href="/portfolio" className="block">
+                  <Button variant="outline" className="w-full" size="sm">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Il Mio Portfolio
+                  </Button>
+                </Link>
                 <Link href="/portfolio/new" className="block">
                   <Button variant="primary" className="w-full" size="sm">
                     <Plus className="w-4 h-4 mr-2" />
@@ -164,11 +189,11 @@ export default function StudentDashboard() {
               <div className="mt-6 pt-6 border-t border-gray-200 space-y-3">
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Connessioni</span>
-                  <span className="font-semibold">0</span>
+                  <span className="font-semibold">{connectionsCount}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Lavori</span>
-                  <span className="font-semibold">0</span>
+                  <span className="font-semibold">{portfolioCount}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-600">Candidature</span>
