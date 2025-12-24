@@ -92,3 +92,4 @@ function getCourseType(course: string): 'triennio' | 'biennio' {
   return biennioCourses.includes(course) ? 'biennio' : 'triennio'
 }
 
+

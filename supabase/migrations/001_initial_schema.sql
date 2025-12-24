@@ -263,3 +263,4 @@ CREATE TRIGGER update_community_posts_updated_at
   BEFORE UPDATE ON public.community_posts
   FOR EACH ROW EXECUTE FUNCTION public.handle_updated_at();
 
+
