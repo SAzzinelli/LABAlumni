@@ -61,7 +61,7 @@ export default function CompanyDashboard() {
           job_post:job_posts(*),
           student:students(id, course)
         `)
-        .in('job_post_id', jobsData?.map(j => j.id) || [])
+        .in('job_post_id', jobsData?.map((j: any) => j.id) || [])
         .order('created_at', { ascending: false })
         .limit(5)
 
