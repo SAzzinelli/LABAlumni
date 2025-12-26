@@ -212,6 +212,11 @@ export default function StudentDashboard() {
                 <Link href="/network" className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors py-2">
                   <Users className="w-5 h-5" />
                   <span>Network</span>
+                  {connectionsCount > 0 && (
+                    <span className="ml-auto px-2 py-0.5 bg-primary-100 text-primary-700 rounded-full text-xs font-medium">
+                      {connectionsCount}
+                    </span>
+                  )}
                 </Link>
                 <Link href="/thesis" className="flex items-center gap-2 text-gray-700 hover:text-primary-600 transition-colors py-2">
                   <BookOpen className="w-5 h-5" />
